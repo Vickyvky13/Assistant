@@ -17,6 +17,7 @@ ERROR = {}
 SourceM = KeyManager("CH_SOURCE", cast=list)
 DestiM = KeyManager("CH_DESTINATIONS", cast=list)
 
+
 # Modify the message_map to store both source and destination chat IDs
 message_map = {}
 
@@ -40,6 +41,24 @@ async def on_source_message_delete(event):
                     await asst.send_message(udB.get_key("LOG_CHANNEL"), error_message)
             # Clean up the message map
             del message_map[deleted_id]
+
+# Function to handle message edits in the source channel
+@ultroid_bot.on(events.MessageEdited)
+async def on_source_message_edit(event):
+    # Check if the edited message ID is in the message map
+    if event.message.id in message_map:
+        destination_chat_id, destination_message_id = message_map[event.message.id]
+        try:
+            # Attempt to edit the corresponding message in the destination channel
+            await event.client.edit_message(destination_chat_id, destination_message_id, event.message.text)
+        except Exception as ex:
+            # Log the exception if unable to edit
+            try:
+                ERROR[str(ex)]
+            except KeyError:
+                ERROR.update({str(ex): ex})
+                error_message = f"**Error on AUTOPOST EDIT**\n\n`{ex}`"
+                await asst.send_message(udB.get_key("LOG_CHANNEL"), error_message)
 
 # Function to automatically post messages from source to destination
 async def autopost_func(e):
@@ -82,8 +101,10 @@ async def autopost_func(e):
 if udB.get_key("AUTOPOST"):
     ultroid_bot.add_handler(autopost_func, events.NewMessage())
 
-# Add the delete handler
+# Add the delete and edit handlers
 ultroid_bot.add_handler(on_source_message_delete, events.MessageDeleted)
+ultroid_bot.add_handler(on_source_message_edit, events.MessageEdited)
+
 
 @ultroid_cmd(pattern="shift (.*)")
 async def _(e):
