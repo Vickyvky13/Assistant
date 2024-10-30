@@ -5,7 +5,7 @@ __doc__ = get_help("help_channelhacks")
 import asyncio
 import io
 import re
-
+from collections import defaultdict
 from telethon.errors.rpcerrorlist import FloodWaitError
 from telethon.utils import get_display_name, get_peer_id
 
@@ -298,3 +298,75 @@ async def list_all(event):
 
 if udB.get_key("AUTOPOST"):
     ultroid_bot.add_handler(autopost_func, events.NewMessage())
+
+
+##########
+
+
+
+# Store channel pairs
+CSources = defaultdict(list)
+
+@ultroid_cmd(pattern="csource (-?\d+) \| (-?\d+)")
+async def set_csource(e):
+    source_id = int(e.pattern_match.group(1))
+    dest_id = int(e.pattern_match.group(2))
+    
+    if not CSources[source_id]:
+        CSources[source_id] = [dest_id]
+        await e.eor(f"Channel pair added: {source_id} -> {dest_id}")
+    else:
+        await e.eor(f"Source channel already paired.")
+
+@ultroid_cmd(pattern="clist$")
+async def list_csource(event):
+    x = await event.eor(get_string("com_1"))
+    if not CSources:
+        return await eor(x, "No channel pairs found.", time=5)
+    
+    msg = "**Current Channel Pairs:**"
+    for i, (source, dests) in enumerate(CSources.items(), 1):
+        try:
+            source_name = get_display_name(await event.client.get_entity(source))
+            dest_name = get_display_name(await event.client.get_entity(dests[0]))
+        except BaseException:
+            source_name, dest_name = "", ""
+        
+        msg += f"\n{i}. **{source_name}** [`{source}`] | **{dest_name}** [`{dests[0]}`]"
+    
+    if len(msg) > 4096:
+        MSG = msg.replace("*", "").replace("`", "")
+        with io.BytesIO(str.encode(MSG)) as out_file:
+            out_file.name = "csource_pairs.txt"
+            await event.reply("Channel Pairs in Database", file=out_file, force_document=True, allow_cache=False)
+            await x.delete()
+    else:
+        await x.edit(msg)
+
+@ultroid_cmd(pattern="crm (\d+)")
+async def remove_csource(event):
+    index = int(event.pattern_match.group(1))
+    x = await event.eor(get_string("com_1"))
+    if index < 1 or index > len(CSources):
+        return await eor(x, "Invalid index.", time=5)
+    
+    key_to_remove = list(CSources.keys())[index - 1]
+    del CSources[key_to_remove]
+    
+    await eor(x, f"Removed channel pair at index {index}.", time=5)
+
+@events.register(events.NewMessage())
+async def autopost_func(event):
+    # Check if the event is coming from a source channel
+    if event.chat_id in CSources:
+        destination_chat_id = CSources[event.chat_id][0]
+
+        # Check for messages containing URLs and skip if found
+        if any(part.url for part in event.message.entities or []):
+            return
+
+        # Forward the message to the paired destination channel
+        try:
+            await event.client.send_message(destination_chat_id, event.message)
+        except Exception as e:
+            LOGS.error(f"Failed to forward message from {event.chat_id} to {destination_chat_id}: {e}")
