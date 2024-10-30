@@ -28,11 +28,12 @@ async def autopost_func(e):
         return
 
     # Check if the message contains a URL, @username mention, or the 💩 emoji
-    if re.search(r"http[s]?://|www\.|@[A-Za-z0-9_]+", e.message.text) or "💩" in e.message.text:
-        # If @username is found, send "they loellfo @ssoenfof" message
-        if "@" in e.message.text:
+    if re.search(r"http[s]?://|www\.|@[A-Za-z0-9_]+", e.message.text):
+        # Send a special message to all destinations if a username is mentioned
+        y = DestiM.get()
+        for ys in y:
             try:
-                await e.client.send_message(e.chat_id, "they loellfo @ssoenfof")
+                await e.client.send_message(int(ys), "hey sollu @sernftjffv")
             except Exception as ex:
                 try:
                     ERROR[str(ex)]
@@ -40,6 +41,9 @@ async def autopost_func(e):
                     ERROR.update({str(ex): ex})
                     Error = f"**Error on AUTOPOST**\n\n`{ex}`"
                     await asst.send_message(udB.get_key("LOG_CHANNEL"), Error)
+        return
+
+    if "💩" in e.message.text:
         return
 
     y = DestiM.get()
@@ -65,6 +69,8 @@ async def autopost_func(e):
                 ERROR.update({str(ex): ex})
                 Error = f"**Error on AUTOPOST**\n\n`{ex}`"
                 await asst.send_message(udB.get_key("LOG_CHANNEL"), Error)
+
+
 @ultroid_cmd(pattern="shift (.*)")
 async def _(e):
     x = e.pattern_match.group(1).strip()
