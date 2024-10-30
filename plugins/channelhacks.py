@@ -17,6 +17,9 @@ ERROR = {}
 SourceM = KeyManager("CH_SOURCE", cast=list)
 DestiM = KeyManager("CH_DESTINATIONS", cast=list)
 
+# Dictionary to map source message IDs to destination message IDs
+message_map = {}
+
 async def autopost_func(e):
     if not udB.get_key("AUTOPOST"):
         return
@@ -36,12 +39,15 @@ async def autopost_func(e):
             reply_to_msg_id = None
             if e.is_reply:
                 original_msg = await e.get_reply_message()
-                reply_to_msg = await e.client.get_messages(int(ys), ids=original_msg.id)
-                if reply_to_msg:
-                    reply_to_msg_id = reply_to_msg.id
+                # Find the corresponding message in the destination channel
+                if original_msg.id in message_map:
+                    reply_to_msg_id = message_map[original_msg.id]
 
-            # Send the message to the destination, including reply context
-            await e.client.send_message(int(ys), e.message, reply_to=reply_to_msg_id)
+            # Send the message to the destination, including reply context if available
+            sent_message = await e.client.send_message(int(ys), e.message, reply_to=reply_to_msg_id)
+
+            # Map the source message ID to the destination message ID
+            message_map[e.message.id] = sent_message.id
         except Exception as ex:
             try:
                 ERROR[str(ex)]
@@ -49,7 +55,6 @@ async def autopost_func(e):
                 ERROR.update({str(ex): ex})
                 Error = f"**Error on AUTOPOST**\n\n`{ex}`"
                 await asst.send_message(udB.get_key("LOG_CHANNEL"), Error)
-
 
 @ultroid_cmd(pattern="shift (.*)")
 async def _(e):
