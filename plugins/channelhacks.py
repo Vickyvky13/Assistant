@@ -29,11 +29,16 @@ async def autopost_func(e):
     if get_peer_id(th) not in x:
         return
 
-    # Check if the message contains a URL, @username mention, the 🎯 emoji, or the phrase "this number my name"
+    # Check if the message contains a URL, @username mention, the 🎯 emoji, or specific unwanted patterns
     if re.search(r"http[s]?://|www\.|@[A-Za-z0-9_]+", e.message.text) or "💩" in e.message.text:
         return
-    
-    if re.search(r"@[A-Za-z0-9_]+\s.*Send the profile  booking screenshot guys💵⏫\n\n@TradingCallOwn", e.message.text, re.IGNORECASE):
+
+    # Condition to skip messages containing "@username come that time" or similar pattern
+    if re.search(r"@[A-Za-z0-9_]+\scome that time", e.message.text, re.IGNORECASE):
+        return
+
+    # Condition to skip if a specific username like "@usernwme" is mentioned
+    if re.search(r"@usernwme", e.message.text, re.IGNORECASE):
         return
 
     y = DestiM.get()
