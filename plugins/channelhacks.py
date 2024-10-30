@@ -18,6 +18,10 @@ SourceM = KeyManager("CH_SOURCE", cast=list)
 DestiM = KeyManager("CH_DESTINATIONS", cast=list)
 
 
+import os
+from telethon import events
+
+# Dictionary to keep track of message mappings between source and destination channels
 message_map = {}
 
 # Function to handle message deletions in the source channel
@@ -99,7 +103,24 @@ async def autopost_func(e):
                 if original_msg.id in message_map:
                     reply_to_msg_id = message_map[original_msg.id][1]
 
-            sent_message = await e.client.send_message(int(ys), e.message, reply_to=reply_to_msg_id)
+            # Check if the message contains media
+            if e.message.media:
+                # Download the media file temporarily
+                media_file = await e.client.download_media(e.message.media)
+
+                # Send the media to the destination channel
+                sent_message = await e.client.send_file(
+                    int(ys), 
+                    media_file, 
+                    caption=e.message.text, 
+                    reply_to=reply_to_msg_id
+                )
+
+                # Clean up the downloaded media file after sending
+                os.remove(media_file)
+            else:
+                # Send a text message if no media is present
+                sent_message = await e.client.send_message(int(ys), e.message.text, reply_to=reply_to_msg_id)
 
             # Store both the destination chat ID and message ID
             message_map[e.message.id] = (int(ys), sent_message.id)
@@ -111,7 +132,7 @@ async def autopost_func(e):
                 error_message = f"**Error on AUTOPOST**\n\n`{ex}`"
                 await asst.send_message(udB.get_key("LOG_CHANNEL"), error_message)
 
-
+# Adding autopost handler if autopost is enabled
 if udB.get_key("AUTOPOST"):
     ultroid_bot.add_handler(autopost_func, events.NewMessage())
 
