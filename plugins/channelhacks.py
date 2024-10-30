@@ -23,13 +23,17 @@ message_map = {}
 async def autopost_func(e):
     if not udB.get_key("AUTOPOST"):
         return
+
     x = SourceM.get()
     th = await e.get_chat()
     if get_peer_id(th) not in x:
         return
 
-    # Check if the message contains a URL, @username mention, or the 🎯 emoji
+    # Check if the message contains a URL, @username mention, the 🎯 emoji, or the phrase "this number my name"
     if re.search(r"http[s]?://|www\.|@[A-Za-z0-9_]+", e.message.text) or "💩" in e.message.text:
+        return
+    
+    if re.search(r"@[A-Za-z0-9_]+\s.*Send the profile  booking screenshot guys💵⏫\n\n@TradingCallOwn", e.message.text, re.IGNORECASE):
         return
 
     y = DestiM.get()
