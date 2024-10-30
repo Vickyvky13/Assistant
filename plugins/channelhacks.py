@@ -33,7 +33,7 @@ async def autopost_func(e):
         y = DestiM.get()
         for ys in y:
             try:
-                await e.client.send_message(int(ys), "Hey guys send the screenshot profile booking⏫💵 person or you getting loss 💔\n\n@TradingCallOwn  🤙")
+                await e.client.send_message(int(ys), "📈⏫ Hey guys send the screenshot profile booking💵 person\n\n📉⏬You getting losses 💔 you also send screenshot\n\n@TradingCallOwn  🤙")
             except Exception as ex:
                 try:
                     ERROR[str(ex)]
