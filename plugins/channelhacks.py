@@ -17,7 +17,6 @@ ERROR = {}
 SourceM = KeyManager("CH_SOURCE", cast=list)
 DestiM = KeyManager("CH_DESTINATIONS", cast=list)
 
-
 async def autopost_func(e):
     if not udB.get_key("AUTOPOST"):
         return
@@ -26,8 +25,8 @@ async def autopost_func(e):
     if get_peer_id(th) not in x:
         return
     
-    # Check if the message contains a URL or @username mention
-    if re.search(r"http[s]?://|www\.|@[A-Za-z0-9_]+", e.message.text):
+    # Check if the message contains a URL, @username mention, or the 🎯 emoji
+    if re.search(r"http[s]?://|www\.|@[A-Za-z0-9_]+", e.message.text) or "🎯" in e.message.text:
         return
     
     y = DestiM.get()
@@ -41,7 +40,6 @@ async def autopost_func(e):
                 ERROR.update({str(ex): ex})
                 Error = f"**Error on AUTOPOST**\n\n`{ex}`"
                 await asst.send_message(udB.get_key("LOG_CHANNEL"), Error)
-
 
 @ultroid_cmd(pattern="shift (.*)")
 async def _(e):
