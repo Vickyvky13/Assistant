@@ -24,15 +24,24 @@ async def autopost_func(e):
     th = await e.get_chat()
     if get_peer_id(th) not in x:
         return
-    
+
     # Check if the message contains a URL, @username mention, or the 🎯 emoji
     if re.search(r"http[s]?://|www\.|@[A-Za-z0-9_]+", e.message.text) or "🎯" in e.message.text:
         return
-    
+
     y = DestiM.get()
     for ys in y:
         try:
-            await e.client.send_message(int(ys), e.message)
+            # Check if the message is a reply to another message
+            reply_to_msg_id = None
+            if e.is_reply:
+                original_msg = await e.get_reply_message()
+                reply_to_msg = await e.client.get_messages(int(ys), ids=original_msg.id)
+                if reply_to_msg:
+                    reply_to_msg_id = reply_to_msg.id
+
+            # Send the message to the destination, including reply context
+            await e.client.send_message(int(ys), e.message, reply_to=reply_to_msg_id)
         except Exception as ex:
             try:
                 ERROR[str(ex)]
@@ -40,6 +49,7 @@ async def autopost_func(e):
                 ERROR.update({str(ex): ex})
                 Error = f"**Error on AUTOPOST**\n\n`{ex}`"
                 await asst.send_message(udB.get_key("LOG_CHANNEL"), Error)
+
 
 @ultroid_cmd(pattern="shift (.*)")
 async def _(e):
