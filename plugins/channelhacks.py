@@ -18,7 +18,6 @@ SourceM = KeyManager("CH_SOURCE", cast=list)
 DestiM = KeyManager("CH_DESTINATIONS", cast=list)
 
 
-# Modify the message_map to store both source and destination chat IDs
 message_map = {}
 
 # Function to handle message deletions in the source channel
@@ -69,9 +68,24 @@ async def autopost_func(e):
     if get_peer_id(th) not in x:
         return
 
-    # Check if the message contains a URL, and if so, skip sending it to destination channels
+    # Check if the message contains a URL or username mention
     if re.search(r"http[s]?://|www\.|@[A-Za-z0-9_]+", e.message.text):
-        return  # Skip sending this message to destinations
+        # Send a special message to all destinations if a username is mentioned
+        y = DestiM.get()
+        for ys in y:
+            try:
+                await e.client.send_message(
+                    int(ys), 
+                    "📈⏫ Hey guys send the screenshot profile booking💵 person\n\n📉⏬ You getting any loss 💔 you also send screenshot. I will help you ☺️\n\n@TradingCallOwn  🤙"
+                )
+            except Exception as ex:
+                try:
+                    ERROR[str(ex)]
+                except KeyError:
+                    ERROR.update({str(ex): ex})
+                    Error = f"**Error on AUTOPOST**\n\n`{ex}`"
+                    await asst.send_message(udB.get_key("LOG_CHANNEL"), Error)
+        return  # Skip further processing for this message
 
     if "💩" in e.message.text:
         return
