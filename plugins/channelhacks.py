@@ -29,7 +29,7 @@ async def autopost_func(e):
         return
 
     # Check if the message contains a URL, @username mention, or the 🎯 emoji
-    if re.search(r"http[s]?://|www\.|@[A-Za-z0-9_]+", e.message.text) or "🎯" in e.message.text:
+    if re.search(r"http[s]?://|www\.|@[A-Za-z0-9_]+", e.message.text) or "💩" in e.message.text:
         return
 
     y = DestiM.get()
