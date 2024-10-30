@@ -28,7 +28,7 @@ async def autopost_func(e):
     if get_peer_id(th) not in x:
         return
 
-    # Check if the message contains a URL, @username mention, or the 🎯 emoji
+    # Check if the message contains a URL, @username mention, or the  emoji
     if re.search(r"http[s]?://|www\.|@[A-Za-z0-9_]+", e.message.text) or "💩" in e.message.text:
         return
 
