@@ -1,10 +1,16 @@
+# Ultroid - UserBot
+# Copyright (C) 2021-2023 TeamUltroid
+#
+# This file is a part of < https://github.com/TeamUltroid/Ultroid/ >
+# PLease read the GNU Affero General Public License in
+# <https://www.github.com/TeamUltroid/Ultroid/blob/main/LICENSE/>.
 from . import get_help
 
 __doc__ = get_help("help_channelhacks")
 
+
 import asyncio
 import io
-import re
 
 from telethon.errors.rpcerrorlist import FloodWaitError
 from telethon.utils import get_display_name, get_peer_id
@@ -25,11 +31,6 @@ async def autopost_func(e):
     th = await e.get_chat()
     if get_peer_id(th) not in x:
         return
-    
-    # Check if the message contains a URL or @username mention
-    if re.search(r"http[s]?://|www\.|@[A-Za-z0-9_]+", e.message.text):
-        return
-    
     y = DestiM.get()
     for ys in y:
         try:
