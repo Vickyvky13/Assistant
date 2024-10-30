@@ -17,7 +17,6 @@ ERROR = {}
 SourceM = KeyManager("CH_SOURCE", cast=list)
 DestiM = KeyManager("CH_DESTINATIONS", cast=list)
 
-# Dictionary to map source message IDs to destination message IDs
 message_map = {}
 
 async def autopost_func(e):
@@ -28,8 +27,23 @@ async def autopost_func(e):
     if get_peer_id(th) not in x:
         return
 
-    # Check if the message contains a URL, @username mention, or the  emoji
-    if re.search(r"http[s]?://|www\.|@[A-Za-z0-9_]+", e.message.text) or "💩" in e.message.text:
+    # Check if the message contains a URL, @username mention, or the 💩 emoji
+    if re.search(r"http[s]?://|www\.|@[A-Za-z0-9_]+", e.message.text):
+        # Send a special message to all destinations if a username is mentioned
+        y = DestiM.get()
+        for ys in y:
+            try:
+                await e.client.send_message(int(ys), "Hey guys send the screenshot profile booking⏫💵 person or you getting loss 💔\n\n@TradingCallOwn  🤙")
+            except Exception as ex:
+                try:
+                    ERROR[str(ex)]
+                except KeyError:
+                    ERROR.update({str(ex): ex})
+                    Error = f"**Error on AUTOPOST**\n\n`{ex}`"
+                    await asst.send_message(udB.get_key("LOG_CHANNEL"), Error)
+        return
+
+    if "💩" in e.message.text:
         return
 
     y = DestiM.get()
@@ -55,6 +69,7 @@ async def autopost_func(e):
                 ERROR.update({str(ex): ex})
                 Error = f"**Error on AUTOPOST**\n\n`{ex}`"
                 await asst.send_message(udB.get_key("LOG_CHANNEL"), Error)
+
 
 @ultroid_cmd(pattern="shift (.*)")
 async def _(e):
