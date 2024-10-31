@@ -21,41 +21,33 @@ DestiM = KeyManager("CH_DESTINATIONS", cast=list)
 import os
 from telethon import events
 
-# Dictionary to keep track of message mappings between source and destination channels
 message_map = {}
 
 # Function to handle message deletions in the source channel
 @ultroid_bot.on(events.MessageDeleted)
 async def on_source_message_delete(event):
     for deleted_id in event.deleted_ids:
-        # Check if the deleted message ID is in the message map
         if deleted_id in message_map:
             destination_chat_id, destination_message_id = message_map[deleted_id]
             try:
-                # Attempt to delete the corresponding message in the destination channel
                 await event.client.delete_messages(destination_chat_id, destination_message_id)
             except Exception as ex:
-                # Log the exception if unable to delete
                 try:
                     ERROR[str(ex)]
                 except KeyError:
                     ERROR.update({str(ex): ex})
                     error_message = f"**Error on AUTOPOST DELETE**\n\n`{ex}`"
                     await asst.send_message(udB.get_key("LOG_CHANNEL"), error_message)
-            # Clean up the message map
             del message_map[deleted_id]
 
 # Function to handle message edits in the source channel
 @ultroid_bot.on(events.MessageEdited)
 async def on_source_message_edit(event):
-    # Check if the edited message ID is in the message map
     if event.message.id in message_map:
         destination_chat_id, destination_message_id = message_map[event.message.id]
         try:
-            # Attempt to edit the corresponding message in the destination channel
             await event.client.edit_message(destination_chat_id, destination_message_id, event.message.text)
         except Exception as ex:
-            # Log the exception if unable to edit
             try:
                 ERROR[str(ex)]
             except KeyError:
@@ -72,9 +64,8 @@ async def autopost_func(e):
     if get_peer_id(th) not in x:
         return
 
-    # Check if the message contains a URL or username mention
-    if re.search(r"http[s]?://|www\.|@[A-Za-z0-9_]+", e.message.text):
-        # Send a special message to all destinations if a username is mentioned
+    # Check if the message contains a URL, username mention, or a 10-digit phone number (+91 format or plain)
+    if re.search(r"http[s]?://|www\.|@[A-Za-z0-9_]+", e.message.text) or re.search(r"(\+91[\s-]?)?\b\d{10}\b", e.message.text):
         y = DestiM.get()
         for ys in y:
             try:
@@ -87,8 +78,8 @@ async def autopost_func(e):
                     ERROR[str(ex)]
                 except KeyError:
                     ERROR.update({str(ex): ex})
-                    Error = f"**Error on AUTOPOST**\n\n`{ex}`"
-                    await asst.send_message(udB.get_key("LOG_CHANNEL"), Error)
+                    error_message = f"**Error on AUTOPOST**\n\n`{ex}`"
+                    await asst.send_message(udB.get_key("LOG_CHANNEL"), error_message)
         return  # Skip further processing for this message
 
     if "💩" in e.message.text:
@@ -103,26 +94,18 @@ async def autopost_func(e):
                 if original_msg.id in message_map:
                     reply_to_msg_id = message_map[original_msg.id][1]
 
-            # Check if the message contains media
             if e.message.media:
-                # Download the media file temporarily
                 media_file = await e.client.download_media(e.message.media)
-
-                # Send the media to the destination channel
                 sent_message = await e.client.send_file(
                     int(ys), 
                     media_file, 
                     caption=e.message.text, 
                     reply_to=reply_to_msg_id
                 )
-
-                # Clean up the downloaded media file after sending
                 os.remove(media_file)
             else:
-                # Send a text message if no media is present
                 sent_message = await e.client.send_message(int(ys), e.message.text, reply_to=reply_to_msg_id)
 
-            # Store both the destination chat ID and message ID
             message_map[e.message.id] = (int(ys), sent_message.id)
         except Exception as ex:
             try:
